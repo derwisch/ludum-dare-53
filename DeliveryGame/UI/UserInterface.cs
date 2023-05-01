@@ -330,10 +330,10 @@ namespace DeliveryGame.UI
                 buttonSelect.IsActive = false;
             };
 
-            recipesWindow = new()
+            recipesWindow = new(ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureRecipeWindow))
             {
                 Title = "Recipes",
-                Text = "Iron Bars\nIron Ore + Coal\n\nCopper Bars\nCopper Ore + Coal\n"
+                Text = "Smelting\nPlant\n\n\n\n\n\n\nAssembly\nPlant"
             };
             recipesWindow.Closed += () =>
             {

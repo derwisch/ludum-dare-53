@@ -61,9 +61,7 @@ public class GameMain : Game
     protected override void LoadContent()
     {
         spriteBatch = new SpriteBatch(GraphicsDevice);
-
         ContentLibrary.Instance.Load(Content, GraphicsDevice);
-
         world.Load(ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureMap));
     }
 

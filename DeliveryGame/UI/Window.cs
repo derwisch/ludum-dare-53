@@ -11,11 +11,16 @@ namespace DeliveryGame.UI
 
         private static readonly Lazy<SpriteFont> titleFont = new(() => ContentLibrary.Instance.TitleFont);
 
-        private static readonly Lazy<Texture2D> windowTexture = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWindow));
+        private readonly Lazy<Texture2D> windowTexture = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWindow));
 
-        public Window()
+        public Window(Texture2D texture = null)
         {
             InputState.Instance.LeftClick += MouseLeftClick;
+
+            if (texture != null)
+            {
+                windowTexture = new(() => texture);
+            }
         }
 
         public event Action Closed;
@@ -24,7 +29,7 @@ namespace DeliveryGame.UI
         public (int x, int y) Offset { get; set; }
 
         public string Text { get; set; } = "";
-
+        
         public string Title { get; set; } = "";
 
         public Rectangle WindowArea => new()

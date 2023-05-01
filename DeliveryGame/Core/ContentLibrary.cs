@@ -70,6 +70,7 @@ namespace DeliveryGame.Core
             public const string TextureIconRequests = "ui-icon-requests";
             public const string TextureDirectionArrow = "direction-arrow";
             public const string TextureWindow = "window";
+            public const string TextureRecipeWindow = "recipe-window";
         }
 
         public SpriteFont Font { get; private set; }
@@ -157,6 +158,7 @@ namespace DeliveryGame.Core
             textures[Keys.TextureIconRequests] = content.Load<Texture2D>("Images/icon_requests");
             textures[Keys.TextureDirectionArrow] = content.Load<Texture2D>("Images/direction_arrow");
             textures[Keys.TextureWindow] = content.Load<Texture2D>("Images/window");
+            textures[Keys.TextureRecipeWindow] = content.Load<Texture2D>("Images/recipe_window");
         }
     }
 }
