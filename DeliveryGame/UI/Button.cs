@@ -2,9 +2,11 @@
 using Microsoft.Xna.Framework;
 using System;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.UI
 {
-    internal class Button
+    public class Button
     {
         public Button()
         {
@@ -15,10 +17,13 @@ namespace DeliveryGame.UI
         {
             X = X,
             Y = Y,
-            Width = Constants.ButtonWidth,
-            Height = Constants.ButtonHeight
+            Width = Width,
+            Height = Height
         };
 
+        public bool IsClickable { get; set; }
+        public int Width { get; set; } = Constants.ButtonWidth;
+        public int Height { get; set; } = Constants.ButtonHeight;
         public string IconKey { get; set; }
         public int Index { get; set; }
         public bool IsActive { get; set; }
@@ -30,9 +35,10 @@ namespace DeliveryGame.UI
 
         private void MouseLeftClick()
         {
-            if (ButtonArea.Contains(InputState.Instance.MouseState.Position))
+            if (IsClickable && ButtonArea.Contains(InputState.Instance.MouseState.Position))
             {
                 OnClick?.Invoke();
+                ContentLibrary.SoundEffects[SoundEffectClick].Play(0.5f, 0, 0);
             }
         }
     }

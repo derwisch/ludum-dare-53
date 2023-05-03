@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace DeliveryGame.Core
 {
-    internal class World
+    public class World
     {
         private readonly Tile[,] tiles;
 

@@ -3,7 +3,7 @@ using System;
 
 namespace DeliveryGame.Core
 {
-    internal class Camera
+    public class Camera
     {
         public static Camera Instance => instance.Value;
         private static readonly Lazy<Camera> instance = new(() => new());

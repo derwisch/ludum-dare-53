@@ -1,10 +1,9 @@
 ﻿namespace DeliveryGame.Core
 {
-    internal enum BuildableType
+    public enum BuildableType
     {
         Conveyor,
         Divider,
-        Merger,
-        Extractor
+        Merger
     }
 }

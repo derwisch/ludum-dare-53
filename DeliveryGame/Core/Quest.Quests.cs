@@ -5,13 +5,15 @@ using System.Linq;
 
 namespace DeliveryGame.Core
 {
-    internal partial class Quest
+    public partial class Quest
     {
         private const string RewardAdditionalBaseExtractors = "extractor-iron-coal";
         private const string RewardAdvancedExtractors = "extractor-silicon-oil";
         private const string RewardAssemblers = "assembler";
         private const string RewardCopperExtractors = "extractor-copper";
         private const string RewardSmelteries = "smeltery";
+        private const string RewardFasterBelts = "belts";
+        private const string RewardEmpty = "none";
 
         private static readonly Dictionary<string, Action> questRewards = new()
         {
@@ -19,23 +21,33 @@ namespace DeliveryGame.Core
             { RewardCopperExtractors, QuestRewardCopperExtractors },
             { RewardAdvancedExtractors, QuestRewardAdvancedExtractors },
             { RewardSmelteries, QuestRewardSmelteries },
-            { RewardAssemblers, QuestRewardAssemblers }
+            { RewardAssemblers, QuestRewardAssemblers },
+            { RewardFasterBelts, QuestRewardFasterBelts },
+            { RewardEmpty, QuestRewardEmpty },
         };
 
         static Quest()
         {
-            QuestQueue.Enqueue(new(RewardCopperExtractors, (5, WareType.IronBar)));
-            QuestQueue.Enqueue(new(RewardAdditionalBaseExtractors, (5, WareType.CopperBar)));
-            QuestQueue.Enqueue(new(RewardAdvancedExtractors, (10, WareType.IronBar), (10, WareType.CopperBar)));
+            QuestQueue.Enqueue(new(RewardCopperExtractors, (50, WareType.IronBar)));
+            QuestQueue.Enqueue(new(RewardAdditionalBaseExtractors, (50, WareType.CopperBar)));
+            QuestQueue.Enqueue(new(RewardAdvancedExtractors, (100, WareType.IronBar), (100, WareType.CopperBar)));
             QuestQueue.Enqueue(new(RewardSmelteries, (10, WareType.Gear), (10, WareType.CopperCoil), (10, WareType.Circuit)));
-            QuestQueue.Enqueue(new(RewardAssemblers, (2, WareType.Motor)));
-            QuestQueue.Enqueue(new(RewardAssemblers, (2, WareType.Computer)));
-            QuestQueue.Enqueue(new(RewardAssemblers, (2, WareType.Robot)));
+            QuestQueue.Enqueue(new(RewardAssemblers, (100, WareType.Gear), (100, WareType.CopperCoil), (100, WareType.Circuit)));
+            QuestQueue.Enqueue(new(RewardEmpty, (5, WareType.Motor)));
+            QuestQueue.Enqueue(new(RewardEmpty, (5, WareType.Computer)));
+            QuestQueue.Enqueue(new(RewardFasterBelts, (5, WareType.Robot)));
+            QuestQueue.Enqueue(new(RewardEmpty, (200, WareType.Motor), (200, WareType.Computer), (200, WareType.Robot)));
+            QuestQueue.Enqueue(new(RewardEmpty));
         }
 
         public static Queue<Quest> QuestQueue { get; } = new();
         public static List<Tile> RewardAssemblerTiles { get; } = new();
         public static List<Tile> RewardSmelteryTiles { get; } = new();
+
+        private static void QuestRewardEmpty()
+        {
+            // Do nothing
+        }
 
         private static void QuestRewardAdditionalBaseExtractors()
         {
@@ -82,6 +94,11 @@ namespace DeliveryGame.Core
             {
                 tile.SetBuilding(new Smeltery(tile));
             }
+        }
+
+        private static void QuestRewardFasterBelts()
+        {
+            GameState.Current.ConveyorCooldown = 100;
         }
     }
 }

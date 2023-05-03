@@ -4,9 +4,11 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Linq;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Hub : StaticElement
+    public class Hub : StaticElement
     {
         public Hub(Tile parent) : base(parent)
         {
@@ -25,10 +27,10 @@ namespace DeliveryGame.Elements
 
         public override int ZIndex => Constants.LayerBuildables;
 
-        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureHub));
+        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureHub]);
         public override void Update(GameTime gameTime)
         {
-            WareHandler.UpdateSlots();
+            WareHandler.Update();
 
             if (WareHandler.Output.FirstOrDefault() is Ware ware)
             {
@@ -37,7 +39,7 @@ namespace DeliveryGame.Elements
             }
         }
 
-        internal override void CleanUp()
+        public override void CleanUp()
         {
         }
     }

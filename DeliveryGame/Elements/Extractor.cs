@@ -3,9 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Extractor : StaticElement
+    public class Extractor : StaticElement
     {
         private ParticleSystem leftSmokeParticleSystem;
         private ParticleSystem rightSmokeParticleSystem;
@@ -23,7 +25,7 @@ namespace DeliveryGame.Elements
                 particleCount: 500,
                 fadePercentage: 0.5f,
                 particleSpeed: new Vector2(0.1f, -0.15f),
-                particleTexture: ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TexturePuffParticle),
+                particleTexture: ContentLibrary.Textures[TexturePuffParticle],
                 particleColor: Color.Black,
                 particleVariation: new Vector2(3, 2));
 
@@ -35,7 +37,7 @@ namespace DeliveryGame.Elements
                 particleCount: 500,
                 fadePercentage: 0.5f,
                 particleSpeed: new Vector2(0.1f, -0.15f),
-                particleTexture: ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TexturePuffParticle),
+                particleTexture: ContentLibrary.Textures[TexturePuffParticle],
                 particleColor: Color.Black,
                 particleVariation: new Vector2(3, 2));
 
@@ -56,10 +58,10 @@ namespace DeliveryGame.Elements
 
         public override int ZIndex => Constants.LayerBuildables;
 
-        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureExtractor));
+        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureExtractor]);
         public override void Update(GameTime gameTime)
         {
-            WareHandler.UpdateSlots();
+            WareHandler.Update();
             if (WareHandler.HasStorageSpace)
             {
                 WareType type = MapTileTypeToWareType(parent.Type);
@@ -70,7 +72,7 @@ namespace DeliveryGame.Elements
             }
         }
 
-        internal override void CleanUp()
+        public override void CleanUp()
         {
             RenderPool.Instance.UnregisterRenderable(leftSmokeParticleSystem);
             RenderPool.Instance.UnregisterRenderable(rightSmokeParticleSystem);

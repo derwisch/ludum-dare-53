@@ -5,13 +5,15 @@ using System.Linq;
 
 namespace DeliveryGame.Elements
 {
-    internal class WareHandler
+    public class WareHandler
     {
         private readonly Ware[] output;
         private readonly Tile parentTile;
         private readonly Ware[] storage;
         private Side[] inputSides;
         private Side[] outputSides;
+        private int currentOutputIndex = 0;
+        private int currentInputIndex = 0;
         public WareHandler(int storageCount, int outputCount, Side[] inputSides, Side[] outputSides, Tile parentTile)
         {
             storage = new Ware[storageCount];
@@ -67,25 +69,36 @@ namespace DeliveryGame.Elements
             outputSides = sides;
         }
 
-        public void UpdateSlots()
+        public void Update()
         {
-            if (storage.Any(x => x != null) && output.Any(x => x == null))
-            {
-                // TODO: Balance or rotate through input/outputs
-                var firstEmptyOutput = Array.IndexOf(output, null);
-                var firstStorageElement = storage.First(x => x != null);
-                var storageIndex = Array.IndexOf(storage, firstStorageElement);
-
-                output[firstEmptyOutput] = firstStorageElement;
-                storage[storageIndex] = null;
-            }
-
             if (HasStorageSpace)
             {
                 var (input, side) = GetInputHandler();
                 if (input != null)
                 {
                     PullFrom(input, side);
+                }
+            }
+            else if (storage.Any(x => x != null) && output.Any(x => x == null))
+            {
+                do
+                {
+                    currentOutputIndex = (currentOutputIndex + 1) % output.Length;
+                }
+                while (output[currentOutputIndex] != null);
+
+                var firstStorageElement = storage.First(x => x != null);
+                var storageIndex = Array.IndexOf(storage, firstStorageElement);
+
+                if (CanHandleWare(firstStorageElement))
+                {
+                    handledWares.Add(firstStorageElement);
+
+                    output[currentOutputIndex] = firstStorageElement;
+                    storage[storageIndex] = null;
+
+                    StorageSlotChanged?.Invoke();
+                    OutputSlotChanged?.Invoke();
                 }
             }
         }
@@ -112,8 +125,16 @@ namespace DeliveryGame.Elements
 
         private (WareHandler handler, Side inputSide) GetInputHandler()
         {
-            foreach (var inputSide in inputSides)
+            var startIndex = currentInputIndex;
+
+            if (inputSides.Length == 0)
+                return (null, default);
+
+            do
             {
+                currentInputIndex = (currentInputIndex + 1) % inputSides.Length;
+                var inputSide = inputSides[currentInputIndex];
+
                 (int offsetX, int offsetY) = inputSide switch
                 {
                     Side.Top => (0, -1),
@@ -144,6 +165,8 @@ namespace DeliveryGame.Elements
 
                 return (otherHandler, inputSide);
             }
+            while (currentInputIndex != startIndex);
+
             return (null, default);
         }
 
@@ -153,8 +176,23 @@ namespace DeliveryGame.Elements
             var outputSide = ReverseSide(inputSide);
             var (element, index) = other.GetOutput(outputSide);
 
+            if (!CanHandleWare(element))
+                return;
+
+            handledWares.Add(element);
+
             AddStorage(element);
             other.output[index] = null;
+
+            StorageSlotChanged?.Invoke();
+            other.OutputSlotChanged?.Invoke();
         }
+
+        public static void ResetHandledWares() => handledWares.Clear();
+        private static bool CanHandleWare(Ware ware) => !handledWares.Contains(ware);
+        private static readonly HashSet<Ware> handledWares = new();
+
+        public event Action StorageSlotChanged;
+        public event Action OutputSlotChanged;
     }
 }

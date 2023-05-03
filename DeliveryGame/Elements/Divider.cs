@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Divider : StaticElement
+    public class Divider : StaticElement
     {
-        private double cooldown = 0;
+        private int cooldownIteration = 0;
         private int rotation = 0;
         public Divider(Tile parent) : base(parent)
         {
@@ -59,7 +61,7 @@ namespace DeliveryGame.Elements
         public IEnumerable<Side> OutputSides => GetOutputSides();
         public override int ZIndex => Constants.LayerBuildables;
 
-        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDivider));
+        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureDivider]);
         public override void Render(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, GameTime gameTime)
         {
             var texture = TextureProducer.Value;
@@ -79,14 +81,11 @@ namespace DeliveryGame.Elements
 
         public override void Update(GameTime gameTime)
         {
-            if (cooldown <= 0)
+            var currentCooldownIteration = (int)(gameTime.TotalGameTime.TotalMilliseconds / GameState.Current.ConveyorCooldown);
+            if (cooldownIteration < currentCooldownIteration)
             {
-                WareHandler.UpdateSlots();
-                cooldown = Constants.ConveyorCooldown;
-            }
-            else
-            {
-                cooldown -= gameTime.ElapsedGameTime.TotalMilliseconds;
+                cooldownIteration = currentCooldownIteration;
+                WareHandler.Update();
             }
 
             foreach (var ware in WareHandler.Output.Where(x => x != null))
@@ -99,7 +98,7 @@ namespace DeliveryGame.Elements
             }
         }
 
-        internal override void CleanUp()
+        public override void CleanUp()
         {
             UI.InputState.Instance.KeyPressed -= InputKeyPressed;
             WareHandler.CleanUp();

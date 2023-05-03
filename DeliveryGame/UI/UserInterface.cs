@@ -7,11 +7,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.UI
 {
-    internal class UserInterface : IRenderable
+    public class UserInterface : IRenderable
     {
-        private static readonly Rectangle pauseScreenArea = new()
+        private static Rectangle PauseScreenArea => new()
         {
             X = 0,
             Y = 0,
@@ -21,19 +23,27 @@ namespace DeliveryGame.UI
 
         private static readonly Color pauseScreenColor = new(Color.Black, 127);
 
-        private static readonly Lazy<Texture2D> textureActiveBorder = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureActiveBorder));
+        private static readonly Lazy<Texture2D> textureActiveBorder = new(() => ContentLibrary.Textures[TextureActiveBorder]);
 
-        private static readonly Lazy<Texture2D> textureBuildables = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureBuildablesUI));
+        private static readonly Lazy<Texture2D> textureBuildables = new(() => ContentLibrary.Textures[TextureBuildablesUI]);
 
-        private static readonly Lazy<Texture2D> textureButtonDown = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureButtonDown));
+        private static readonly Lazy<Texture2D> textureButtonDown = new(() => ContentLibrary.Textures[TextureButtonDown]);
 
-        private static readonly Lazy<Texture2D> textureButtonHover = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureButtonHover));
+        private static readonly Lazy<Texture2D> textureButtonHover = new(() => ContentLibrary.Textures[TextureButtonHover]);
 
-        private static readonly Lazy<Texture2D> textureButtonUp = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureButtonUp));
+        private static readonly Lazy<Texture2D> textureButtonUp = new(() => ContentLibrary.Textures[TextureButtonUp]);
 
-        private static readonly Lazy<Texture2D> textureMenu = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureMenuUI));
+        private static readonly Lazy<Texture2D> textureMenu = new(() => ContentLibrary.Textures[TextureMenuUI]);
 
-        private static readonly Lazy<Texture2D> textureWhitePixel = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWhitePixel));
+        private static readonly Lazy<Texture2D> textureWhitePixel = new(() => ContentLibrary.Textures[TextureWhitePixel]);
+
+        private static readonly Lazy<Texture2D> textureSplash = new(() => ContentLibrary.Textures[TextureSplash]);
+
+        private static readonly Lazy<Texture2D> textureButtonMenuDown = new(() => ContentLibrary.Textures[TextureMenuButtonDown]);
+
+        private static readonly Lazy<Texture2D> textureButtonMenuHover = new(() => ContentLibrary.Textures[TextureMenuButtonHover]);
+
+        private static readonly Lazy<Texture2D> textureButtonMenuUp = new(() => ContentLibrary.Textures[TextureMenuButtonUp]);
 
         private readonly List<Button> buttonsBuildables = new();
 
@@ -50,6 +60,8 @@ namespace DeliveryGame.UI
         private Button buttonRequests;
 
         private Button buttonSelect;
+
+        private Button buttonQuit;
 
         private bool isBuildablesFolded = false;
 
@@ -175,14 +187,54 @@ namespace DeliveryGame.UI
 
             if (GameState.Current.IsGamePaused)
             {
-                spriteBatch.Draw(textureWhitePixel.Value, pauseScreenArea, pauseScreenColor);
+                DrawPauseMenu(spriteBatch, gameTime);
             }
         }
 
-        internal void Update()
+        private void DrawPauseMenu(SpriteBatch spriteBatch, GameTime gameTime)
         {
-            var mouseState = InputState.Instance.MouseState;
+            Rectangle splashRect = new()
+            {
+                X = (Camera.Instance.ViewportWidth / 2) - (textureSplash.Value.Width / 2),
+                Y = (Camera.Instance.ViewportHeight / 2) - (textureSplash.Value.Height / 2),
+                Width = textureSplash.Value.Width,
+                Height = textureSplash.Value.Height
+            };
 
+            spriteBatch.Draw(textureWhitePixel.Value, PauseScreenArea, pauseScreenColor);
+            spriteBatch.Draw(textureSplash.Value, splashRect, Color.White);
+
+            var font = ContentLibrary.Instance.TitleFont;
+            var buttonTexture = buttonQuit.State switch
+            {
+                UIButtonState.Up => textureButtonMenuUp.Value,
+                UIButtonState.Down => textureButtonMenuDown.Value,
+                UIButtonState.Hover => textureButtonMenuHover.Value,
+                _ => textureButtonUp.Value,
+            };
+            var buttonRect = new Rectangle()
+            {
+                X = (Camera.Instance.ViewportWidth / 2) - (buttonTexture.Width / 2),
+                Y = Camera.Instance.ViewportHeight - (buttonTexture.Height * 2),
+                Width = buttonTexture.Width,
+                Height = buttonTexture.Height
+            };
+            buttonRect.Width = buttonTexture.Width;
+            buttonRect.Height = buttonTexture.Height;
+
+            var vec = font.MeasureString("Quit");
+            var textPos = new Vector2()
+            {
+                X = buttonRect.Center.X - (vec.X / 2),
+                Y = buttonRect.Center.Y - (vec.Y / 2)
+            };
+
+            spriteBatch.Draw(buttonTexture, buttonRect, Color.White);
+            spriteBatch.DrawString(font, "Quit", textPos, Color.Black);
+        }
+
+        public void Update()
+        {
             if (!buttonsBuildables.Any())
             {
                 InitializeUI();
@@ -194,36 +246,38 @@ namespace DeliveryGame.UI
                 {
                     var area = button.ButtonArea;
 
-                    var over = area.Contains(mouseState.Position.X, mouseState.Position.Y);
-                    var down = mouseState.LeftButton == ButtonState.Pressed;
-
-                    if (over && down)
-                    {
-                        button.State = UIButtonState.Down;
-                    }
-                    else if (over)
-                    {
-                        button.State = UIButtonState.Hover;
-                    }
-                    else
-                    {
-                        button.State = UIButtonState.Up;
-                    }
+                    UpdateButton(button, area);
                 }
+                var quitButtonRect = new Rectangle()
+                {
+                    X = (Camera.Instance.ViewportWidth / 2) - (textureButtonMenuUp.Value.Width / 2),
+                    Y = Camera.Instance.ViewportHeight - (textureButtonMenuUp.Value.Height * 2),
+                    Width = textureButtonMenuUp.Value.Width,
+                    Height = textureButtonMenuUp.Value.Height
+                };
+                UpdateButton(buttonQuit, quitButtonRect);
             }
 
             if (requestsWindow.IsVisible && GameState.Current.CurrentQuest != null)
             {
                 var quest = GameState.Current.CurrentQuest;
 
-                requestsWindow.Text = "Requested Wares:";
-
-                foreach (var (count, type) in quest.RequestedWares)
+                if (quest.RequestedWares.Any())
                 {
-                    var deliveredAmount = quest.DeliveredWares[type];
-                    var name = GetWareDisplayName(type);
-                    requestsWindow.Text += $"\n({deliveredAmount}/{count}) {name}";
+                    requestsWindow.Text = "Requested Wares:";
+                    foreach (var (count, type) in quest.RequestedWares)
+                    {
+                        var deliveredAmount = quest.DeliveredWares[type];
+                        var name = GetWareDisplayName(type);
+                        requestsWindow.Text += $"\n({deliveredAmount}/{count}) {name}";
+                    }
                 }
+                else
+                {
+                    requestsWindow.Text = "Congratulations!";
+                    requestsWindow.Text += "\nYou delivered all the requests";
+                }
+
             }
 
             if (selectionWindow.IsVisible)
@@ -235,12 +289,33 @@ namespace DeliveryGame.UI
             }
         }
 
+        private static void UpdateButton(Button button, Rectangle area)
+        {
+            var mouseState = InputState.Instance.MouseState;
+
+            var over = area.Contains(mouseState.Position.X, mouseState.Position.Y);
+            var down = mouseState.LeftButton == ButtonState.Pressed;
+
+            if (over && down)
+            {
+                button.State = UIButtonState.Down;
+            }
+            else if (over)
+            {
+                button.State = UIButtonState.Hover;
+            }
+            else
+            {
+                button.State = UIButtonState.Up;
+            }
+        }
+
         private static void DrawButtons(SpriteBatch spriteBatch, List<Button> buttons)
         {
             foreach (var button in buttons)
             {
                 var buttonBaseTexture = GetButtonTexture(button.State);
-                var buttonIconTexture = ContentLibrary.Instance.GetTexture(button.IconKey);
+                var buttonIconTexture = ContentLibrary.Textures[button.IconKey];
                 var buttonRect = button.ButtonArea;
 
                 spriteBatch.Draw(buttonBaseTexture, buttonRect, Color.White);
@@ -305,6 +380,14 @@ namespace DeliveryGame.UI
                 IconKey = ContentLibrary.Keys.TextureIconSelect
             };
 
+            buttonQuit = new()
+            {
+                Name = "btn-quit",
+                Index = 6,
+                Width = textureButtonMenuUp.Value.Width,
+                Height = textureButtonMenuUp.Value.Height
+            };
+
             buttonConveyor.OnClick = () =>
             {
                 GameState.Current.SelectedBuildable = BuildableType.Conveyor;
@@ -330,7 +413,15 @@ namespace DeliveryGame.UI
                 buttonSelect.IsActive = false;
             };
 
-            recipesWindow = new(ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureRecipeWindow))
+            buttonQuit.OnClick = () =>
+            {
+                if (GameState.Current.IsGamePaused)
+                {
+                    GameState.Current.Quit();
+                }
+            };
+
+            recipesWindow = new(ContentLibrary.Textures[ContentLibrary.Keys.TextureRecipeWindow])
             {
                 Title = "Recipes",
                 Text = "Smelting\nPlant\n\n\n\n\n\n\nAssembly\nPlant"
@@ -420,12 +511,14 @@ namespace DeliveryGame.UI
                 {
                     if (tile.Building == null && GameState.Current.SelectedBuildable != null)
                     {
+                        StaticElement building = null;
+
                         switch (GameState.Current.SelectedBuildable)
                         {
                             case BuildableType.Conveyor:
                                 if (tile.Type == TileType.Grass)
                                 {
-                                    tile.SetBuilding(new Conveyor(tile, Side.Top, Side.Bottom));
+                                    building = new Conveyor(tile, Side.Top, Side.Bottom);
                                 }
 
                                 break;
@@ -433,7 +526,7 @@ namespace DeliveryGame.UI
                             case BuildableType.Divider:
                                 if (tile.Type == TileType.Grass)
                                 {
-                                    tile.SetBuilding(new Divider(tile));
+                                    building = new Divider(tile);
                                 }
 
                                 break;
@@ -441,18 +534,15 @@ namespace DeliveryGame.UI
                             case BuildableType.Merger:
                                 if (tile.Type == TileType.Grass)
                                 {
-                                    tile.SetBuilding(new Merger(tile));
+                                    building = new Merger(tile);
                                 }
-
                                 break;
+                        }
 
-                            case BuildableType.Extractor:
-                                if (tile.Type != TileType.Grass)
-                                {
-                                    tile.SetBuilding(new Extractor(tile));
-                                }
-
-                                break;
+                        if (building != null)
+                        {
+                            tile.SetBuilding(building);
+                            ContentLibrary.SoundEffects[ContentLibrary.Keys.SoundEffectPlace].Play(0.3f, 0, 0);
                         }
                     }
                     else if (tile.Building != null && GameState.Current.SelectedBuildable == null)
@@ -496,29 +586,41 @@ namespace DeliveryGame.UI
 
         private void UpdateButtonLocations()
         {
+            var isPaused = GameState.Current.IsGamePaused;
+
             int buildablesX = BuildablesArea.X;
             int buildablesY = BuildablesArea.Y;
 
             buttonConveyor.X = buildablesX + 9;
             buttonConveyor.Y = buildablesY + 28;
+            buttonConveyor.IsClickable = !isBuildablesFolded && !isPaused;
 
             buttonDivider.X = buildablesX + Constants.ButtonWidth + 8 + 9;
             buttonDivider.Y = buildablesY + 28;
+            buttonDivider.IsClickable = !isBuildablesFolded && !isPaused;
 
             buttonMerger.X = buildablesX + (2 * (Constants.ButtonWidth + 8)) + 9;
             buttonMerger.Y = buildablesY + 28;
+            buttonMerger.IsClickable = !isBuildablesFolded && !isPaused;
 
             int menuX = MenuArea.X;
             int menuY = MenuArea.Y;
 
             buttonRecipes.X = menuX + 9;
             buttonRecipes.Y = menuY + 28;
+            buttonRecipes.IsClickable = !isMenuFolded && !isPaused;
 
             buttonRequests.X = menuX + Constants.ButtonWidth + 8 + 9;
             buttonRequests.Y = menuY + 28;
+            buttonRequests.IsClickable = !isMenuFolded && !isPaused;
 
             buttonSelect.X = menuX + (2 * (Constants.ButtonWidth + 8)) + 9;
             buttonSelect.Y = menuY + 28;
+            buttonSelect.IsClickable = !isMenuFolded && !isPaused;
+
+            buttonQuit.X = (Camera.Instance.ViewportWidth / 2) - (textureButtonMenuUp.Value.Width / 2);
+            buttonQuit.Y = Camera.Instance.ViewportHeight - (textureButtonMenuUp.Value.Height * 2);
+            buttonQuit.IsClickable = isPaused;
         }
     }
 }

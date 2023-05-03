@@ -1,6 +1,6 @@
 ﻿namespace DeliveryGame.Core
 {
-    internal enum TileType
+    public enum TileType
     {
         Grass,
         DepositCoal,

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace DeliveryGame.Core
 {
-    internal interface IRenderable
+    public interface IRenderable
     {
         int ZIndex { get; }
 

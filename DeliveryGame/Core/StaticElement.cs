@@ -3,9 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Core
 {
-    internal abstract class StaticElement : IRenderable
+    public abstract class StaticElement : IRenderable
     {
         protected readonly Tile parent;
         protected readonly int tileX;
@@ -45,7 +47,7 @@ namespace DeliveryGame.Core
             }
         }
 
-        protected virtual Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureChecker));
+        protected virtual Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureChecker]);
 
         public virtual void Render(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, GameTime gameTime)
         {
@@ -54,6 +56,6 @@ namespace DeliveryGame.Core
 
         public abstract void Update(GameTime gameTime);
 
-        internal abstract void CleanUp();
+        public abstract void CleanUp();
     }
 }

@@ -4,9 +4,11 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Ware : IRenderable
+    public class Ware : IRenderable
     {
         public bool IsVisible { get; set; }
         public float X { get; set; }
@@ -15,20 +17,20 @@ namespace DeliveryGame.Elements
 
         private readonly Lazy<Dictionary<WareType, Texture2D>> textures = new(() => new()
         {
-            { WareType.Coal, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareCoal) },
-            { WareType.IronOre, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareOreIron) },
-            { WareType.IronBar, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareBarIron) },
-            { WareType.CopperOre, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareOreCopper) },
-            { WareType.CopperBar, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareBarCopper) },
-            { WareType.Silicon, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareSilicon) },
-            { WareType.Oil, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareOil) },
-            { WareType.Plastic, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWarePlastic) },
-            { WareType.Gear, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareGear) },
-            { WareType.CopperCoil, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareCopperCoil) },
-            { WareType.Circuit, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareCircuit) },
-            { WareType.Motor, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareMotor) },
-            { WareType.Computer, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareComputer) },
-            { WareType.Robot, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWareRobot) },
+            { WareType.Coal, ContentLibrary.Textures[TextureWareCoal] },
+            { WareType.IronOre, ContentLibrary.Textures[TextureWareOreIron] },
+            { WareType.IronBar, ContentLibrary.Textures[TextureWareBarIron] },
+            { WareType.CopperOre, ContentLibrary.Textures[TextureWareOreCopper] },
+            { WareType.CopperBar, ContentLibrary.Textures[TextureWareBarCopper] },
+            { WareType.Silicon, ContentLibrary.Textures[TextureWareSilicon] },
+            { WareType.Oil, ContentLibrary.Textures[TextureWareOil] },
+            { WareType.Plastic, ContentLibrary.Textures[TextureWarePlastic] },
+            { WareType.Gear, ContentLibrary.Textures[TextureWareGear] },
+            { WareType.CopperCoil, ContentLibrary.Textures[TextureWareCopperCoil] },
+            { WareType.Circuit, ContentLibrary.Textures[TextureWareCircuit] },
+            { WareType.Motor, ContentLibrary.Textures[TextureWareMotor] },
+            { WareType.Computer, ContentLibrary.Textures[TextureWareComputer] },
+            { WareType.Robot, ContentLibrary.Textures[TextureWareRobot] },
         });
 
         public Ware(WareType type)

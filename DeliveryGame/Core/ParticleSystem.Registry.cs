@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DeliveryGame.Core
 {
-    internal partial class ParticleSystem : IRenderable
+    public partial class ParticleSystem : IRenderable
     {
         private static readonly List<ParticleSystem> registeredParticleSystems = new();
 
@@ -15,12 +15,12 @@ namespace DeliveryGame.Core
             }
         }
 
-        internal static void RegisterSystem(ParticleSystem particleSystem)
+        public static void RegisterSystem(ParticleSystem particleSystem)
         {
             registeredParticleSystems.Add(particleSystem);
         }
 
-        internal static void UnregisterSystem(ParticleSystem particleSystem)
+        public static void UnregisterSystem(ParticleSystem particleSystem)
         {
             registeredParticleSystems.Remove(particleSystem);
         }

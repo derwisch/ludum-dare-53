@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame;
 
 public class GameMain : Game
@@ -39,6 +41,7 @@ public class GameMain : Game
         world = new World(Constants.MapWidth, Constants.MapHeight);
         userInterface = new UserInterface();
 
+        GameState.Current.Initialize(this);
         GameState.Current.World = world;
 
         for (int y = 0; y < Constants.MapHeight; y++)
@@ -56,17 +59,22 @@ public class GameMain : Game
         GameState.Current.CurrentQuest = Quest.QuestQueue.Dequeue();
 
         base.Initialize();
+
+        Window.Title = "Conveyor Delivery Quest";
     }
 
     protected override void LoadContent()
     {
         spriteBatch = new SpriteBatch(GraphicsDevice);
         ContentLibrary.Instance.Load(Content, GraphicsDevice);
-        world.Load(ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureMap));
+        world.Load(ContentLibrary.Textures[TextureMap]);
     }
 
     protected override void Update(GameTime gameTime)
     {
+        if (!IsActive)
+            return;
+
         InputState.Instance.Update();
 
         var keyboardState = InputState.Instance.KeyboardState;
@@ -80,6 +88,10 @@ public class GameMain : Game
             HandleScrolling(mouseState, keyboardState);
             HandleZoom(mouseState);
         }
+
+        GameState.Current.InvokeGlobalUpdate(gameTime);
+
+        WareHandler.ResetHandledWares();
 
         base.Update(gameTime);
     }

@@ -5,13 +5,13 @@ using System;
 
 namespace DeliveryGame.UI
 {
-    internal class Window : IRenderable
+    public class Window : IRenderable
     {
         private static readonly Lazy<SpriteFont> font = new(() => ContentLibrary.Instance.Font);
 
         private static readonly Lazy<SpriteFont> titleFont = new(() => ContentLibrary.Instance.TitleFont);
 
-        private readonly Lazy<Texture2D> windowTexture = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureWindow));
+        private readonly Lazy<Texture2D> windowTexture = new(() => ContentLibrary.Textures[ContentLibrary.Keys.TextureWindow]);
 
         public Window(Texture2D texture = null)
         {
@@ -40,7 +40,7 @@ namespace DeliveryGame.UI
             Height = windowTexture.Value.Height
         };
 
-        public int ZIndex => Constants.LayerUI;
+        public int ZIndex => Constants.LayerUIWindows;
 
         private Vector2 TextPosition => new()
         {

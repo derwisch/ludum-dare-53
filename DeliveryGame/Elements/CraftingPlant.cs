@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace DeliveryGame.Elements
 {
-    internal abstract class CraftingPlant : StaticElement
+    public abstract class CraftingPlant : StaticElement
     {
         protected readonly List<Recipe> recipes = new();
 
@@ -20,7 +20,7 @@ namespace DeliveryGame.Elements
 
         public override void Update(GameTime gameTime)
         {
-            WareHandler.UpdateSlots();
+            WareHandler.Update();
             if (WareHandler.HasStorageSpace)
             {
                 StaticElement leftInput = GameState.Current.World[tileX + -1, tileY]?.Building;

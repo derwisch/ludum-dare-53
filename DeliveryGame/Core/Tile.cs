@@ -4,19 +4,22 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Core
 {
-    internal class Tile : IRenderable
+    public class Tile : IRenderable
     {
         private static readonly Lazy<Dictionary<TileType, Texture2D>> tileTextures = new(() => new Dictionary<TileType, Texture2D>()
         {
-             { TileType.Grass, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureGrass) },
-             { TileType.DepositCoal, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDepositCoal) },
-             { TileType.DepositIron, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDepositIron) },
-             { TileType.DepositCopper, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDepositCopper) },
-             { TileType.DepositSilicon, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDepositSilicon) },
-             { TileType.DepositOil, ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDepositOil) }
+             { TileType.Grass, ContentLibrary.Textures[TextureGrass] },
+             { TileType.DepositCoal, ContentLibrary. Textures[TextureDepositCoal] },
+             { TileType.DepositIron, ContentLibrary.Textures[TextureDepositIron] },
+             { TileType.DepositCopper, ContentLibrary.Textures[TextureDepositCopper] },
+             { TileType.DepositSilicon, ContentLibrary.Textures[TextureDepositSilicon] },
+             //{ TileType.DepositOil, ContentLibrary.Textures[TextureDepositOil] },
         });
+        private static readonly Lazy<AnimatedTexture> oilTileAnimation = new(() => ContentLibrary.Animations[TextureDepositOil]);
 
         private StaticElement building;
 
@@ -37,7 +40,14 @@ namespace DeliveryGame.Core
             Rectangle rect = GetRectangle();
             Color color = GameState.Current.HoveredTile == this ? Color.Gray : Color.White;
 
-            spriteBatch.Draw(tileTextures.Value[Type], rect, color);
+            if (Type == TileType.DepositOil)
+            {
+                spriteBatch.Draw(oilTileAnimation.Value, rect, color);
+            }
+            else
+            {
+                spriteBatch.Draw(tileTextures.Value[Type], rect, color);
+            }
         }
 
         public override string ToString()
@@ -45,20 +55,20 @@ namespace DeliveryGame.Core
             return $"{Type}@({X}|{Y})";
         }
 
-        internal void ClearBuilding()
+        public void ClearBuilding()
         {
             RenderPool.Instance.UnregisterRenderable(building);
             building.CleanUp();
             building = null;
         }
 
-        internal void SetBuilding(StaticElement building)
+        public void SetBuilding(StaticElement building)
         {
             this.building = building;
             RenderPool.Instance.RegisterRenderable(building);
         }
 
-        internal void Update(GameTime gameTime)
+        public void Update(GameTime gameTime)
         {
             var tileArea = GetRectangle();
             var mouseState = InputState.Instance.MouseState;

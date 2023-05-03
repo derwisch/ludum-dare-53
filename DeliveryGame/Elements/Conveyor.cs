@@ -7,45 +7,60 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Conveyor : StaticElement
+    public class Conveyor : StaticElement
     {
         private static readonly Rectangle arrowSource = new(0, 0, 9, 9);
 
-        private readonly Lazy<Dictionary<string, Texture2D>> textures = new(() => new()
+        private readonly Lazy<Texture2D> arrowTexture = new(() => ContentLibrary.Textures[TextureDirectionArrow]);
+        private readonly Lazy<Dictionary<string, AnimatedTexture>> textures = new(() => new()
         {
-            { "invalid", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureChecker) },
-            { "dir", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureDirectionArrow) },
+            { "n", ContentLibrary.Animations[TextureConveyorVerticalTop] },
+            { "s", ContentLibrary.Animations[TextureConveyorVerticalBottom] },
+            { "w", ContentLibrary.Animations[TextureConveyorHorizontalLeft] },
+            { "e", ContentLibrary.Animations[TextureConveyorHorizontalRight] },
 
-            { "we", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorHorizontal) },
-            { "ew", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorHorizontal) },
+            { "we", ContentLibrary.Animations[TextureConveyorConnectorHorizontal] },
+            { "ew", ContentLibrary.Animations[TextureConveyorConnectorHorizontal] },
 
-            { "ns", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorVertical) },
-            { "sn", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorVertical) },
+            { "ns", ContentLibrary.Animations[TextureConveyorConnectorVertical] },
+            { "sn", ContentLibrary.Animations[TextureConveyorConnectorVertical] },
 
-            { "ws", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorBottomLeft) },
-            { "sw", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorBottomLeft) },
+            { "ws", ContentLibrary.Animations[TextureConveyorConnectorBottomLeft] },
+            { "sw", ContentLibrary.Animations[TextureConveyorConnectorBottomLeft] },
 
-            { "es", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorBottomRight) },
-            { "se", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorBottomRight) },
+            { "es", ContentLibrary.Animations[TextureConveyorConnectorBottomRight] },
+            { "se", ContentLibrary.Animations[TextureConveyorConnectorBottomRight] },
 
-            { "wn", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorTopLeft) },
-            { "nw", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorTopLeft) },
+            { "wn", ContentLibrary.Animations[TextureConveyorConnectorTopLeft] },
+            { "nw", ContentLibrary.Animations[TextureConveyorConnectorTopLeft] },
 
-            { "en", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorTopRight) },
-            { "ne", ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureConveyorTopRight) }
+            { "en", ContentLibrary.Animations[TextureConveyorConnectorTopRight] },
+            { "ne", ContentLibrary.Animations[TextureConveyorConnectorTopRight] }
         });
 
-        private double cooldown = 0;
+        private int cooldownIteration = 0;
+        private double outputTransportAge = 0;
+        private double storageTransportAge = 0;
         public Conveyor(Tile parent, Side inputSide, Side outputSide) : base(parent)
         {
-            InputSide = inputSide;
-            OutputSide = outputSide;
-            WareHandler = new WareHandler(1, 1, new[] { inputSide }, new[] { outputSide }, parent);
-            InputState.Instance.KeyPressed += InputKeyPressed;
             DisplayName = "Conveyor Belt";
             IsRemoveable = true;
+            InputSide = inputSide;
+            OutputSide = outputSide;
+            InputState.Instance.KeyPressed += InputKeyPressed;
+            WareHandler = new WareHandler(1, 1, new[] { inputSide }, new[] { outputSide }, parent);
+            WareHandler.OutputSlotChanged += () =>
+            {
+                outputTransportAge = GameState.Current.ConveyorCooldown;
+            };
+            WareHandler.StorageSlotChanged += () =>
+            {
+                storageTransportAge = GameState.Current.ConveyorCooldown;
+            };
         }
 
         public override string Info
@@ -78,48 +93,82 @@ namespace DeliveryGame.Elements
         public Side InputSide { get; set; }
         public Side OutputSide { get; set; }
         public override int ZIndex => Constants.LayerBuildables;
-        private int DirectionArrowHeight => textures.Value["dir"].Height;
+        private int DirectionArrowHeight => arrowTexture.Value.Height;
 
-        private int DirectionArrowWidth => textures.Value["dir"].Width;
+        private int DirectionArrowWidth => arrowTexture.Value.Width;
 
         public override void Render(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch, GameTime gameTime)
         {
-            var conveyorTexture = textures.Value[GenerateTextureKey()];
+            var connectorTexture = textures.Value[GenerateTextureKey()];
+            var inputTexture = textures.Value[GetSideKey(InputSide)];
+            var outputTexture = textures.Value[GetSideKey(OutputSide)];
 
-            spriteBatch.Draw(conveyorTexture, StaticElementArea, Color.White);
+            var reverseConnector = InputSide switch
+            {
+                Side.Top => true,
+                Side.Right => OutputSide != Side.Top,
+                Side.Bottom => OutputSide == Side.Left,
+                Side.Left => false,
+                _ => false
+            };
+            var reverseInput = InputSide switch
+            {
+                Side.Top => true,
+                Side.Right => true,
+                Side.Bottom => false,
+                Side.Left => false,
+                _ => false
+            };
+            var reverseOutput = OutputSide switch
+            {
+                Side.Top => false,
+                Side.Right => false,
+                Side.Bottom => true,
+                Side.Left => true,
+                _ => false
+            };
+
+            spriteBatch.Draw(reverseInput ? inputTexture.Reversed : inputTexture, StaticElementArea, Color.White);
+            spriteBatch.Draw(reverseOutput ? outputTexture.Reversed : outputTexture, StaticElementArea, Color.White);
+            spriteBatch.Draw(reverseConnector ? connectorTexture.Reversed : connectorTexture, StaticElementArea, Color.White);
 
             if (GameState.Current.DirectionArrowsVisible)
             {
-                var arrowTexture = textures.Value["dir"];
                 var arrowOrigin = new Vector2(DirectionArrowWidth / 2f, DirectionArrowHeight / 2f);
 
                 var inputRotation = GetSideRotation(InputSide, false);
                 var inputArrowRect = GetSideRectangle(InputSide);
 
-                spriteBatch.Draw(arrowTexture, inputArrowRect, arrowSource, Color.Green, inputRotation, arrowOrigin, SpriteEffects.None, 0);
+                spriteBatch.Draw(arrowTexture.Value, inputArrowRect, arrowSource, Color.Green, inputRotation, arrowOrigin, SpriteEffects.None, 0);
 
                 var outputRotation = GetSideRotation(OutputSide, true);
                 var outputArrowRect = GetSideRectangle(OutputSide);
 
-                spriteBatch.Draw(arrowTexture, outputArrowRect, arrowSource, Color.Red, outputRotation, arrowOrigin, SpriteEffects.None, 0);
+                spriteBatch.Draw(arrowTexture.Value, outputArrowRect, arrowSource, Color.Red, outputRotation, arrowOrigin, SpriteEffects.None, 0);
             }
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (cooldown <= 0)
+            if (outputTransportAge > 0)
             {
-                UpdateSlots();
-                cooldown = Constants.ConveyorCooldown;
+                outputTransportAge -= gameTime.ElapsedGameTime.TotalMilliseconds;
             }
-            else
+            if (storageTransportAge > 0)
             {
-                cooldown -= gameTime.ElapsedGameTime.TotalMilliseconds;
+                storageTransportAge -= gameTime.ElapsedGameTime.TotalMilliseconds;
+            }
+
+            var currentCooldownIteration = (int)(gameTime.TotalGameTime.TotalMilliseconds / GameState.Current.ConveyorCooldown);
+            if (cooldownIteration < currentCooldownIteration)
+            {
+                cooldownIteration = currentCooldownIteration;
+                WareHandler.Update();
             }
             UpdateWarePositions();
         }
 
-        internal override void CleanUp()
+        public override void CleanUp()
         {
             InputState.Instance.KeyPressed -= InputKeyPressed;
             WareHandler.CleanUp();
@@ -140,24 +189,19 @@ namespace DeliveryGame.Elements
             return MathHelper.ToRadians(deg);
         }
 
+        private static string GetSideKey(Side side) => side switch
+        {
+            Side.Top => "n",
+            Side.Right => "e",
+            Side.Bottom => "s",
+            Side.Left => "w",
+            _ => "w"
+        };
+
         private string GenerateTextureKey()
         {
-            var inSide = InputSide switch
-            {
-                Side.Top => "n",
-                Side.Right => "e",
-                Side.Bottom => "s",
-                Side.Left => "w",
-                _ => "w"
-            };
-            var outSide = OutputSide switch
-            {
-                Side.Top => "n",
-                Side.Right => "e",
-                Side.Bottom => "s",
-                Side.Left => "w",
-                _ => "e"
-            };
+            var inSide = GetSideKey(InputSide);
+            var outSide = GetSideKey(OutputSide);
 
             if (inSide == outSide)
             {
@@ -229,45 +273,45 @@ namespace DeliveryGame.Elements
                 WareHandler.UpdateOutputSides(new[] { OutputSide });
             }
         }
-        private void UpdateSlots()
-        {
-            WareHandler.UpdateSlots();
-            UpdateWarePositions();
-        }
 
         private void UpdateWarePositions()
         {
-            var slotOutput = WareHandler.Output.FirstOrDefault();
+            var storageFactor = 1 - (float)(storageTransportAge / GameState.Current.ConveyorCooldown);
+            var outputFactor = 1 - (float)(outputTransportAge / GameState.Current.ConveyorCooldown);
+
+            var (centerX, centerY) = (0.5f * Constants.TileWidth, 0.5f * Constants.TileHeight);
+            var (inputX, inputY) = sidePoint(InputSide);
+            var (outputX, outputY) = sidePoint(OutputSide);
+
+            var storageSlotOffset = (x: MathHelper.Lerp(inputX, centerX, storageFactor), y: MathHelper.Lerp(inputY, centerY, storageFactor));
+            var outputSlotOffset = (x: MathHelper.Lerp(centerX, outputX, outputFactor), y: MathHelper.Lerp(centerY, outputY, outputFactor));
+
             var slotStorage = WareHandler.Storage.FirstOrDefault();
-
-            if (slotOutput != null)
-            {
-                slotOutput.IsVisible = true;
-                float offsetX = OutputSide switch
-                {
-                    Side.Top or Side.Bottom => (Constants.TileWidth / 2),
-                    Side.Right => Constants.TileWidth - (DirectionArrowWidth / 2),
-                    Side.Left => (DirectionArrowWidth / 2),
-                    _ => 0
-                };
-
-                float offsetY = OutputSide switch
-                {
-                    Side.Top => (DirectionArrowHeight / 2),
-                    Side.Bottom => Constants.TileHeight - (DirectionArrowHeight / 2),
-                    Side.Right or Side.Left => (Constants.TileHeight / 2),
-                    _ => 0
-                };
-
-                slotOutput.X = (tileX * Constants.TileWidth) + offsetX;
-                slotOutput.Y = (tileY * Constants.TileHeight) + offsetY;
-            }
+            var slotOutput = WareHandler.Output.FirstOrDefault();
 
             if (slotStorage != null)
             {
                 slotStorage.IsVisible = true;
-                slotStorage.X = tileX * Constants.TileWidth + (0.5f * Constants.TileWidth);
-                slotStorage.Y = tileY * Constants.TileHeight + (0.5f * Constants.TileHeight);
+                var (offsetX, offsetY) = storageSlotOffset;
+                slotStorage.X = tileX * Constants.TileWidth + offsetX;
+                slotStorage.Y = tileY * Constants.TileHeight + offsetY;
+            }
+
+            if (slotOutput != null)
+            {
+                slotOutput.IsVisible = true;
+                var (offsetX, offsetY) = outputSlotOffset;
+                slotOutput.X = (tileX * Constants.TileWidth) + offsetX;
+                slotOutput.Y = (tileY * Constants.TileHeight) + offsetY;
+            }
+
+            static (float x, float y) sidePoint(Side side)
+            {
+                return
+                (
+                    side switch { Side.Top or Side.Bottom => (Constants.TileWidth / 2), Side.Right => Constants.TileWidth, Side.Left => 0, _ => 0 },
+                    side switch { Side.Top => 0, Side.Bottom => Constants.TileHeight, Side.Right or Side.Left => (Constants.TileHeight / 2), _ => 0 }
+                );
             }
         }
     }

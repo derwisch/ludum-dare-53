@@ -1,6 +1,6 @@
 ﻿namespace DeliveryGame.Elements
 {
-    internal enum WareType
+    public enum WareType
     {
         // Base Resources
         Coal,

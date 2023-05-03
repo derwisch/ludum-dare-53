@@ -1,6 +1,6 @@
 ﻿namespace DeliveryGame.Elements
 {
-    internal enum Side
+    public enum Side
     {
         Top,
         Right,

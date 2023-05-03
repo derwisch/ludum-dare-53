@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 
 namespace DeliveryGame.Core
 {
-    internal class ContentLibrary
+    public class ContentLibrary
     {
         public class Keys
         {
@@ -24,13 +25,17 @@ namespace DeliveryGame.Core
             public const string TextureDepositSilicon = "deposit-silicon";
             public const string TextureDepositOil = "deposit-oil";
 
-            // Static Elements
-            public const string TextureConveyorHorizontal = "conveyor-horizontal";
-            public const string TextureConveyorVertical = "conveyor-vertical";
-            public const string TextureConveyorTopLeft = "conveyor-top-left";
-            public const string TextureConveyorTopRight = "conveyor-top-right";
-            public const string TextureConveyorBottomLeft = "conveyor-bottom-left";
-            public const string TextureConveyorBottomRight = "conveyor-bottom-right";
+            // Buildings
+            public const string TextureConveyorConnectorHorizontal = "conveyor-horizontal-connector";
+            public const string TextureConveyorHorizontalLeft = "conveyor-horizontal-left";
+            public const string TextureConveyorHorizontalRight = "conveyor-horizontal-right";
+            public const string TextureConveyorConnectorVertical = "conveyor-vertical-connector";
+            public const string TextureConveyorVerticalTop = "conveyor-vertical-top";
+            public const string TextureConveyorVerticalBottom = "conveyor-vertical-bottom";
+            public const string TextureConveyorConnectorTopLeft = "conveyor-top-left";
+            public const string TextureConveyorConnectorTopRight = "conveyor-top-right";
+            public const string TextureConveyorConnectorBottomLeft = "conveyor-bottom-left";
+            public const string TextureConveyorConnectorBottomRight = "conveyor-bottom-right";
             public const string TextureDivider = "divider";
             public const string TextureMerger = "merger";
             public const string TextureExtractor = "extractor";
@@ -38,7 +43,7 @@ namespace DeliveryGame.Core
             public const string TextureAssembler = "assembler";
             public const string TextureHub = "hub";
             
-            // Dynamic Elements
+            // Wares
             public const string TextureWareCoal = "coal";
             public const string TextureWareOreIron = "iron-ore";
             public const string TextureWareBarIron = "iron-bar";
@@ -59,8 +64,8 @@ namespace DeliveryGame.Core
             public const string TextureMenuUI = "ui-menu";
             public const string TextureButtonUp = "ui-btn-up";
             public const string TextureButtonDown = "ui-btn-down";
-            public const string TextureActiveBorder = "ui-active-border";
             public const string TextureButtonHover = "ui-btn-hover";
+            public const string TextureActiveBorder = "ui-active-border";
             public const string TextureIconConveyor = "ui-icon-conveyor";
             public const string TextureIconDivider = "ui-icon-divider";
             public const string TextureIconMerger = "ui-icon-merger";
@@ -70,15 +75,37 @@ namespace DeliveryGame.Core
             public const string TextureIconRequests = "ui-icon-requests";
             public const string TextureDirectionArrow = "direction-arrow";
             public const string TextureWindow = "window";
+            public const string TextureSplash = "splash";
             public const string TextureRecipeWindow = "recipe-window";
+            public const string TextureMenuButtonUp = "ui-menu-btn-up";
+            public const string TextureMenuButtonDown = "ui-menu-btn-down";
+            public const string TextureMenuButtonHover = "ui-menu-btn-hover";
+
+
+
+            // Sound effects
+            public const string SoundEffectClick = "click";
+            public const string SoundEffectSuccess = "success";
+            public const string SoundEffectPlace = "place";
+
         }
 
         public SpriteFont Font { get; private set; }
         public SpriteFont TitleFont { get; private set; }
 
-        internal Texture2D GetTexture(string key)
+        public AnimatedTexture GetAnimatedTexture(string key)
+        {
+            return animatedTextures[key];
+        }
+
+        public Texture2D GetTexture(string key)
         {
             return textures[key];
+        }
+
+        public SoundEffect GetSoundEffect(string key)
+        {
+            return sounds[key];
         }
 
         private ContentLibrary() { }
@@ -86,8 +113,13 @@ namespace DeliveryGame.Core
         public static ContentLibrary Instance => instance.Value;
         private static readonly Lazy<ContentLibrary> instance = new(() => new());
 
+        public static Indexer<Texture2D> Textures { get; } = new(instance.Value.textures);
+        public static Indexer<SoundEffect> SoundEffects { get; } = new(instance.Value.sounds);
+        public static Indexer<AnimatedTexture> Animations { get; } = new(instance.Value.animatedTextures);
 
         private readonly Dictionary<string, Texture2D> textures = new();
+        private readonly Dictionary<string, SoundEffect> sounds = new();
+        private readonly Dictionary<string, AnimatedTexture> animatedTextures = new();
 
         public void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
@@ -109,14 +141,19 @@ namespace DeliveryGame.Core
             textures[Keys.TextureDepositCopper] = content.Load<Texture2D>("Images/deposit_copper");
             textures[Keys.TextureDepositSilicon] = content.Load<Texture2D>("Images/deposit_silicon");
             textures[Keys.TextureDepositOil] = content.Load<Texture2D>("Images/deposit_oil");
+            animatedTextures[Keys.TextureDepositOil] = AnimatedTexture.Load(content, 200, "Images/deposit_oil", 5);
 
-            // Static Elements
-            textures[Keys.TextureConveyorHorizontal] = content.Load<Texture2D>("Images/conveyor_we");
-            textures[Keys.TextureConveyorVertical] = content.Load<Texture2D>("Images/conveyor_ns");
-            textures[Keys.TextureConveyorTopLeft] = content.Load<Texture2D>("Images/conveyor_nw");
-            textures[Keys.TextureConveyorTopRight] = content.Load<Texture2D>("Images/conveyor_ne");
-            textures[Keys.TextureConveyorBottomLeft] = content.Load<Texture2D>("Images/conveyor_ws");
-            textures[Keys.TextureConveyorBottomRight] = content.Load<Texture2D>("Images/conveyor_es");
+            // Buildings
+            animatedTextures[Keys.TextureConveyorConnectorHorizontal] = AnimatedTexture.Load(content, 100, "BeltAnimation/horizontal");
+            animatedTextures[Keys.TextureConveyorHorizontalLeft] = AnimatedTexture.Load(content, 100, "BeltAnimation/left");
+            animatedTextures[Keys.TextureConveyorHorizontalRight] = AnimatedTexture.Load(content, 100, "BeltAnimation/right");
+            animatedTextures[Keys.TextureConveyorConnectorVertical] = AnimatedTexture.Load(content, 100, "BeltAnimation/vertical", reverse: true);
+            animatedTextures[Keys.TextureConveyorVerticalTop] = AnimatedTexture.Load(content, 100, "BeltAnimation/top", reverse: true);
+            animatedTextures[Keys.TextureConveyorVerticalBottom] = AnimatedTexture.Load(content, 100, "BeltAnimation/bottom", reverse: true);
+            animatedTextures[Keys.TextureConveyorConnectorTopLeft] = AnimatedTexture.Load(content, 100, "BeltAnimation/north-west");
+            animatedTextures[Keys.TextureConveyorConnectorTopRight] = AnimatedTexture.Load(content, 100, "BeltAnimation/north-east");
+            animatedTextures[Keys.TextureConveyorConnectorBottomLeft] = AnimatedTexture.Load(content, 100, "BeltAnimation/south-west");
+            animatedTextures[Keys.TextureConveyorConnectorBottomRight] = AnimatedTexture.Load(content, 100, "BeltAnimation/south-east");
             textures[Keys.TextureDivider] = content.Load<Texture2D>("Images/divider");
             textures[Keys.TextureMerger] = content.Load<Texture2D>("Images/merger");
             textures[Keys.TextureExtractor] = content.Load<Texture2D>("Images/extractor");
@@ -125,7 +162,7 @@ namespace DeliveryGame.Core
             textures[Keys.TextureHub] = content.Load<Texture2D>("Images/hub");
 
 
-            // Dynamic Elements
+            // Wares
             textures[Keys.TextureWareCoal] = content.Load<Texture2D>("Images/ware_coal");
             textures[Keys.TextureWareOreIron] = content.Load<Texture2D>("Images/ware_ironore");
             textures[Keys.TextureWareBarIron] = content.Load<Texture2D>("Images/ware_ironbar");
@@ -159,6 +196,27 @@ namespace DeliveryGame.Core
             textures[Keys.TextureDirectionArrow] = content.Load<Texture2D>("Images/direction_arrow");
             textures[Keys.TextureWindow] = content.Load<Texture2D>("Images/window");
             textures[Keys.TextureRecipeWindow] = content.Load<Texture2D>("Images/recipe_window");
+            textures[Keys.TextureMenuButtonUp] = content.Load<Texture2D>("Images/menu_btn_up");
+            textures[Keys.TextureMenuButtonDown] = content.Load<Texture2D>("Images/menu_btn_down");
+            textures[Keys.TextureMenuButtonHover] = content.Load<Texture2D>("Images/menu_btn_hover");
+            textures[Keys.TextureSplash] = content.Load<Texture2D>("Images/splash");
+
+            // Sounds
+            sounds[Keys.SoundEffectClick] = content.Load<SoundEffect>("Sounds/click");
+            sounds[Keys.SoundEffectSuccess] = content.Load<SoundEffect>("Sounds/vgmenuselect");
+            sounds[Keys.SoundEffectPlace] = content.Load<SoundEffect>("Sounds/place");
+        }
+
+        public class Indexer<T>
+        {
+            private readonly Dictionary<string, T> data;
+
+            public Indexer(Dictionary<string, T> data)
+            {
+                this.data = data;
+            }
+
+            public T this[string key] => data[key];
         }
     }
 }

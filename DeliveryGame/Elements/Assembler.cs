@@ -2,9 +2,11 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Assembler : CraftingPlant
+    public class Assembler : CraftingPlant
     {
         public Assembler(Tile parent) : base(parent)
         {
@@ -36,8 +38,8 @@ namespace DeliveryGame.Elements
             }
         }
 
-        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureAssembler));
-        internal override void CleanUp()
+        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureAssembler]);
+        public override void CleanUp()
         {
         }
     }

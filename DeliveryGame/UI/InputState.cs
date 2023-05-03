@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DeliveryGame.UI
 {
-    internal class InputState
+    public class InputState
     {
         private static readonly Keys[] relevantKeys = new[]
         {

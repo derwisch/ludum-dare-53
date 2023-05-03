@@ -3,9 +3,11 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
+using static DeliveryGame.Core.ContentLibrary.Keys;
+
 namespace DeliveryGame.Elements
 {
-    internal class Smeltery : CraftingPlant
+    public class Smeltery : CraftingPlant
     {
         private ParticleSystem centerFlameParticleSystem;
         private ParticleSystem leftFlameParticleSystem;
@@ -37,8 +39,8 @@ namespace DeliveryGame.Elements
             }
         }
 
-        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TextureSmeltery));
-        internal override void CleanUp()
+        protected override Lazy<Texture2D> TextureProducer { get; set; } = new(() => ContentLibrary.Textures[TextureSmeltery]);
+        public override void CleanUp()
         {
             RenderPool.Instance.UnregisterRenderable(leftFlameParticleSystem);
             RenderPool.Instance.UnregisterRenderable(centerFlameParticleSystem);
@@ -67,7 +69,7 @@ namespace DeliveryGame.Elements
                 particleCount: 50,
                 particleSpeed: new Vector2(0.01f, -0.1f),
                 particleVariation: new Vector2(10, 2),
-                particleTexture: ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TexturePuffParticle),
+                particleTexture: ContentLibrary.Textures[TexturePuffParticle],
                 particleColor: colors
             );
 
@@ -80,7 +82,7 @@ namespace DeliveryGame.Elements
                 particleCount: 50,
                 particleSpeed: new Vector2(0.01f, -0.1f),
                 particleVariation: new Vector2(10, 2),
-                particleTexture: ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TexturePuffParticle),
+                particleTexture: ContentLibrary.Textures[TexturePuffParticle],
                 particleColor: colors
             );
 
@@ -93,7 +95,7 @@ namespace DeliveryGame.Elements
                 particleCount: 50,
                 particleSpeed: new Vector2(0.01f, -0.1f),
                 particleVariation: new Vector2(10, 2),
-                particleTexture: ContentLibrary.Instance.GetTexture(ContentLibrary.Keys.TexturePuffParticle),
+                particleTexture: ContentLibrary.Textures[TexturePuffParticle],
                 particleColor: colors
             );
 

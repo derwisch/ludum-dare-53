@@ -1,6 +1,6 @@
 ﻿namespace DeliveryGame.UI
 {
-    enum UIButtonState
+    public enum UIButtonState
     {
         Up,
         Down,

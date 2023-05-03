@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DeliveryGame.Core
 {
-    internal class RenderPool : IEnumerable<IRenderable>
+    public class RenderPool : IEnumerable<IRenderable>
     {
         public static RenderPool Instance => instance.Value;
         private static readonly Lazy<RenderPool> instance = new(() => new());

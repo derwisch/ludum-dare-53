@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace DeliveryGame.Core
 {
-    internal partial class ParticleSystem : IRenderable
+    public partial class ParticleSystem : IRenderable
     {
         private readonly float fadePercentage;
         private readonly float particleAge;

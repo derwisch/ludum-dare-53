@@ -1,21 +1,52 @@
 ﻿using DeliveryGame.Elements;
+using Microsoft.Xna.Framework;
+using System;
 using System.Linq;
+
+using static DeliveryGame.Core.ContentLibrary.Keys;
 
 namespace DeliveryGame.Core
 {
-    internal class GameState
+    public class GameState
     {
+        public event Action<GameTime> GlobalUpdate;
+
         public static GameState Current { get; private set; } = new GameState();
+        public double ConveyorCooldown { get; set; } = 300;
 
         public Quest CurrentQuest { get; set; }
+
         public bool DirectionArrowsVisible { get; set; } = true;
+
         public bool HasPlayerWon { get; private set; }
+
         public Tile HoveredTile { get; set; } = null;
+
         public bool IsGamePaused { get; set; }
+
         public BuildableType? SelectedBuildable { get; set; } = null;
+
         public StaticElement SelectedBuilding { get; set; } = null;
+
         public World World { get; set; }
-        internal void Deliver(Ware ware)
+
+        private GameMain game;
+        public void Initialize(GameMain game)
+        {
+            this.game = game;
+        }
+
+        public void InvokeGlobalUpdate(GameTime gameTime)
+        {
+            GlobalUpdate?.Invoke(gameTime);
+        }
+
+        public void Quit()
+        {
+            game.Exit();
+        }
+
+        public void Deliver(Ware ware)
         {
             if (CurrentQuest == null)
             {
@@ -29,7 +60,7 @@ namespace DeliveryGame.Core
                 }
             }
 
-            if (CurrentQuest.Requires(ware.Type))
+            if (CurrentQuest?.Requires(ware.Type) ?? false)
             {
                 CurrentQuest.DeliveredWares[ware.Type]++;
 
@@ -37,6 +68,7 @@ namespace DeliveryGame.Core
                 {
                     CurrentQuest.TriggerReward();
                     CurrentQuest = null;
+                    ContentLibrary.SoundEffects[SoundEffectSuccess].Play(0.3f, 0, 0);
                 }
             }
         }

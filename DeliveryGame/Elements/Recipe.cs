@@ -1,6 +1,6 @@
 ﻿namespace DeliveryGame.Elements
 {
-    internal class Recipe
+    public class Recipe
     {
         public Recipe(WareType output, params WareType[] inputs)
         {

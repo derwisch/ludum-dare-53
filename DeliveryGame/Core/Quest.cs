@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace DeliveryGame.Core
 {
-    internal partial class Quest
+    public partial class Quest
     {
         private readonly (int count, WareType type)[] requestedWares;
         private readonly string rewardKey;
@@ -21,9 +21,9 @@ namespace DeliveryGame.Core
         public bool Completed => requestedWares.All(x => DeliveredWares[x.type] == x.count);
         public Dictionary<WareType, int> DeliveredWares { get; } = new();
         public IEnumerable<(int count, WareType type)> RequestedWares => requestedWares;
-        internal bool Requires(WareType type) => requestedWares.Any(x => x.type == type) && DeliveredWares[type] < requestedWares.FirstOrDefault(x => x.type == type).count;
+        public bool Requires(WareType type) => requestedWares.Any(x => x.type == type) && DeliveredWares[type] < requestedWares.FirstOrDefault(x => x.type == type).count;
 
-        internal void TriggerReward()
+        public void TriggerReward()
         {
             questRewards[rewardKey]();
         }
